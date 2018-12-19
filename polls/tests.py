@@ -109,3 +109,27 @@ def create_question(question_text, days):
     time = timezone.now() + datetime.timedelta(days=days)
     return Question.objects.create(question_text=question_text,
                                    publication_date=time)
+
+
+class QuestionDetailViewTests(TestCase):
+    def test_future_question(self):
+        """
+        The detail view of a question with publication_date
+        in the future returns 404.
+        """
+        future_question = create_question(question_text="Future question.",
+                                          days=5)
+        url = reverse("polls:detail", args=(future_question.id,))
+        resp = self.client.get(url)
+        self.assertEqual(resp.status_code, 404)
+    
+    def test_past_question(self):
+        """
+        The detail view of a question with a publication_date in the past
+        displays the question text.
+        """
+        past_question = create_question(question_text="Past Question.",
+                                        days=-5)
+        url = reverse("polls:detail", args=(past_question.id,))
+        resp = self.client.get(url)
+        self.assertContains(resp, past_question.question_text)
